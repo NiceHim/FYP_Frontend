@@ -24,4 +24,4 @@ jobs:
     - name: Remove Old Docker Container
       run: docker rm fyp_frontend_container || true
     - name: Depoly to Docker Container
-      run: docker run -d --net fyp-net --add-host=host.docker.internal:host-gateway --restart always -p 80:80 --name fyp_frontend_container fyp_frontend_image
+      run: docker run -d --net fyp-net --restart always -p 80:80 --name fyp_frontend_container fyp_frontend_image
