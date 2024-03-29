@@ -1,0 +1,27 @@
+name: CICD
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted-3
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Add the environment file
+      run: |
+        touch .env
+        echo "${{ secrets.ENV }}" > .env
+    - name: Remove Old Docker image
+      run: docker rmi $(docker images | grep 'fyp_frontend_image') || true
+    - name: Build the Docker image
+      run: docker build -t fyp_frontend_image .
+    - name: Stop Docker Container
+      run: docker stop fyp_frontend_container || true
+    - name: Remove Old Docker Container
+      run: docker rm fyp_frontend_container || true
+    - name: Depoly to Docker Container
+      run: docker run -d --net fyp-net --restart always -p 80:80 --name fyp_frontend_container fyp_frontend_image
