@@ -3,10 +3,11 @@ import { ref } from 'vue';
 import type IBalanceRecord from "@/models/balanceRecord";
 import {type ICurrentSubscription, type IHistorySubscription} from '@/models/subscription';
 import DataTable from '@/components/DataTable.vue';
-import { getBalanceRecord } from '@/api/user';
+import { getBalanceRecord, getHistoryTransaction } from '@/api/user';
 import { getCurrentSubscription, getHistorySubscription, stopSubscription } from "@/api/subscription";
 import { useAuthStore } from '@/stores/auth';
 import { useSubscribeStore } from '@/stores/subscribe';
+import type ITransaction from '@/models/transaction';
 
 const emits = defineEmits(["addNotification"])
 const authStore = useAuthStore();
@@ -14,12 +15,14 @@ const subscribeStore = useSubscribeStore();
 const itemsBalanceRecord = ref<Array<IBalanceRecord>>([]);
 const itemsCurrentSubscription = ref<Array<ICurrentSubscription>>([]);
 const itemsHistorySubscription = ref<Array<IHistorySubscription>>([]);
+const itemsHistoryTransaction = ref<Array<ITransaction>>([]);
 await loadData();
 
 async function loadData() {
   try {
     [itemsBalanceRecord.value, itemsCurrentSubscription.value, 
-    itemsHistorySubscription.value] = await Promise.all([getBalanceRecord(authStore.token), getCurrentSubscription(authStore.token), getHistorySubscription(authStore.token)]);
+    itemsHistorySubscription.value, itemsHistoryTransaction.value] = await Promise.all([getBalanceRecord(authStore.token), getCurrentSubscription(authStore.token), 
+    getHistorySubscription(authStore.token), getHistoryTransaction(authStore.token)]);
   } catch (error) {
     console.log(error);
   }
@@ -46,6 +49,7 @@ async function stopTickerSubscription(item: ICurrentSubscription) {
           </template>
         </DataTable>
         <DataTable :items="itemsHistorySubscription" :title="'History Subscription'" :hearders="['Ticker', 'Lot', 'Status', 'DoneAt', 'CreatedAt (UTC+0)']"/>
+        <DataTable :items="itemsHistoryTransaction" :title="'History Transaction'" :hearders="['Ticker', 'Price', 'Lot', 'Action', 'PnL', 'CreatedAt (UTC+0)', 'EndedAt (UTC+0)']"/>
     </div>
 </template>
 <style scoped>

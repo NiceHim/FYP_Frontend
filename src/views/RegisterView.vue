@@ -42,9 +42,6 @@ const rules = computed(() => ({
 
 const v$ = useVuelidate(rules, formData);
 
-// onMounted(async () => {
-//   await v$.value.$validate();
-// })
 
 async function handleSubmit(event: any) {
   const result = await v$.value.$validate();
@@ -63,58 +60,76 @@ async function handleSubmit(event: any) {
 
 <template>
     <div class="register-view-container" ref="registerViewContainer">
+      <div class="header-container">
+        <RouterLink to="/">
+          <div class="home-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+              <path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/>
+            </svg>
+          </div>
+        </RouterLink>
+      </div>
       <NotificationContainer :notifications="notificaitions"/>
-      <div class="register-card-container">
-        <span>Register</span>
-        <form class="form" @submit.prevent="handleSubmit">
-          <InputField
-            :type="'text'"
-            :placeholder="'Name'"
-            :autocomplete="'off'"
-            :errorExist="v$.userName.$error"
-            :id="'name'"
-            :inputTitle="'Name'"
-            v-model="formData.userName"
-          />
-          <span v-if="v$.userName.required.$invalid">{{ v$.userName.required.$message }}</span>
-          <InputField
-            :type="'password'"
-            :placeholder="'Password'"
-            :autocomplete="'off'"
-            :errorExist="v$.password.$error"
-            :id="'password'"
-            :inputTitle="'Password'"
-            v-model="formData.password"
-          />
-          <span v-if="v$.password.required.$invalid">{{ v$.password.required.$message }}</span>
-          <span v-if="v$.password.minLength.$invalid">{{ v$.password.minLength.$message }}</span>
-          <span v-if="v$.password.containsUppercase.$invalid">{{ v$.password.containsUppercase.$message }}</span>
-          <span v-if="v$.password.containsLowercase.$invalid">{{ v$.password.containsLowercase.$message }}</span>
-          <span v-if="v$.password.containsNumber.$invalid">{{ v$.password.containsNumber.$message }}</span>
-          <InputField
-            :type="'password'"
-            :placeholder="'Repeat Password'"
-            :autocomplete="'off'"
-            :errorExist="v$.repeatPassword.$error"
-            :id="'repeatPassword'"
-            :inputTitle="'Repeat Password'"
-            v-model="formData.repeatPassword"
-          />
-          <span v-if="v$.repeatPassword.required.$invalid">{{ v$.repeatPassword.required.$message }}</span>
-          <span v-if="v$.repeatPassword.sameAs.$invalid">{{ v$.repeatPassword.sameAs.$message }}</span>
-          <SubmitButton :value="'Create Account'" />
-        </form>
-        <div class="login-text-container">
-          <span>Already have an account? </span>
-          <RouterLink to="/login">
-            <span class="login-span">Login</span>
-          </RouterLink>
+      <div class="main-content-container">
+
+        <div class="register-card-container">
+          <span>Register</span>
+          <form class="form" @submit.prevent="handleSubmit">
+            <InputField
+              :type="'text'"
+              :placeholder="'Name'"
+              :autocomplete="'off'"
+              :errorExist="v$.userName.$error"
+              :id="'name'"
+              :inputTitle="'Name'"
+              v-model="formData.userName"
+            />
+            <span v-if="v$.userName.required.$invalid">{{ v$.userName.required.$message }}</span>
+            <InputField
+              :type="'password'"
+              :placeholder="'Password'"
+              :autocomplete="'off'"
+              :errorExist="v$.password.$error"
+              :id="'password'"
+              :inputTitle="'Password'"
+              v-model="formData.password"
+            />
+            <span v-if="v$.password.required.$invalid">{{ v$.password.required.$message }}</span>
+            <span v-if="v$.password.minLength.$invalid">{{ v$.password.minLength.$message }}</span>
+            <span v-if="v$.password.containsUppercase.$invalid">{{ v$.password.containsUppercase.$message }}</span>
+            <span v-if="v$.password.containsLowercase.$invalid">{{ v$.password.containsLowercase.$message }}</span>
+            <span v-if="v$.password.containsNumber.$invalid">{{ v$.password.containsNumber.$message }}</span>
+            <InputField
+              :type="'password'"
+              :placeholder="'Repeat Password'"
+              :autocomplete="'off'"
+              :errorExist="v$.repeatPassword.$error"
+              :id="'repeatPassword'"
+              :inputTitle="'Repeat Password'"
+              v-model="formData.repeatPassword"
+            />
+            <span v-if="v$.repeatPassword.required.$invalid">{{ v$.repeatPassword.required.$message }}</span>
+            <span v-if="v$.repeatPassword.sameAs.$invalid">{{ v$.repeatPassword.sameAs.$message }}</span>
+            <SubmitButton :value="'Create Account'" />
+          </form>
+          <div class="login-text-container">
+            <span>Already have an account? </span>
+            <RouterLink to="/login">
+              <span class="login-span">Login</span>
+            </RouterLink>
+          </div>
         </div>
       </div>
     </div>
 </template>
 
 <style scoped>
+svg {
+  display: block;
+  height: inherit;
+  width: inherit;
+}
+
 .register-view-container {
   display: flex;
   justify-content: center;
@@ -126,6 +141,41 @@ async function handleSubmit(event: any) {
   background-position: center;
   background-size: cover
 }   
+
+.register-view-container .header-container {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  top: 0;
+  height: 5%;
+  width: 100%;
+  padding-left: 1dvw;
+  padding-right: 1dvw;
+}
+
+.home-icon {
+  border-radius: 100%;
+  height: 2rem;
+  width: 2rem;
+}
+
+.home-icon:hover {
+  background-color: lightgray;
+}
+
+.register-view-container .main-content-container {
+  height: 95%;
+  width: 100%;
+  position: absolute;
+  top: 5%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .register-card-container {
   background: linear-gradient(45deg, deepskyblue, skyblue, lightblue);

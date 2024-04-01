@@ -75,3 +75,12 @@ export async function getCurrentTransaction(token: string) {
     });
     return data;
 }
+
+export async function getHistoryTransaction(token: string) {
+    const { data } = await base.post("/user/historyTransaction", {}, {
+        headers: {
+            "Authorization" : `token ${token}`
+        }
+    });
+    return data;
+}

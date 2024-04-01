@@ -5,4 +5,5 @@ export default interface ITransaction {
     action: string;
     PnL: number;
     createdAt: Date;
+    endedAt: Date;
 }
