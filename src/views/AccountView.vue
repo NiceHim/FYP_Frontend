@@ -48,7 +48,7 @@ async function stopTickerSubscription(item: ICurrentSubscription) {
             </div>
           </template>
         </DataTable>
-        <DataTable :items="itemsHistorySubscription" :title="'History Subscription'" :hearders="['Ticker', 'Lot', 'Status', 'DoneAt', 'CreatedAt (UTC+0)']"/>
+        <DataTable :items="itemsHistorySubscription" :title="'History Subscription'" :hearders="['Ticker', 'Lot', 'Status', 'CreatedAt (UTC+0)', 'EndedAt (UTC+0)']"/>
         <DataTable :items="itemsHistoryTransaction" :title="'History Transaction'" :hearders="['Ticker', 'Price', 'Lot', 'Action', 'PnL', 'CreatedAt (UTC+0)', 'EndedAt (UTC+0)']"/>
     </div>
 </template>

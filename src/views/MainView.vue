@@ -16,10 +16,8 @@ import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import NavBar from '@/components/NavBar.vue';
 import SubmitButton from '@/components/SubmitButton.vue';
 import SubscribeDisabledInputField from '@/components/SubscribeDisabledInputField.vue';
-import SubscribeSelectionField from '@/components/SubscribeSelectionField.vue';
 import SubscribeInputField from '@/components/SubscribeInputField.vue';
 import NotificationContainer from '@/components/NotificationContainer.vue';
-import InputField from '@/components/InputField.vue';
 import type INotification from '@/models/notification';
 import type ITransaction from '@/models/transaction';
 
@@ -194,18 +192,15 @@ async function handleSubscribeSubmit() {
 
 async function handleStopSubscription() {
     try {
-        // const isValid = await v$.value.$validate();
-        // if (isValid == true) {
-        //     const result = await subscribe(authStore.token, subscribeStore.ticker, formData.lot);
-        //     if (result) {
-        //         addNotification("Success", result.message);
-        //         subscribeStore.showSubscribeModal = false;
-        //         subscribeStore.ticker = "";
-        //     }
-        // }
-        const result = await stopSubscription(authStore.token, subscribeStore.ticker, subscribeStore.lot);
-        if (result) {
-            addNotification("Success", result.message);
+        try {
+            const result = await stopSubscription(authStore.token, subscribeStore.ticker, subscribeStore.lot);
+            if (result) {
+                addNotification("Success", result.message);
+                subscribeStore.reset();
+                
+            }
+        } catch (error) {
+            console.log(error)
         }
     } catch (error) {
         addNotification("Error", (error as any).response.data.message);
@@ -308,7 +303,7 @@ watch(()=>userStore.user?.unrealizedPnL, (newValue, oldValue)=>{
                             <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
                         </svg>
                     </div>
-                    <span class="title">Deep Reinforcement Learning Trading Platform Demo</span>
+                    <span class="title">DRL Trading Platform Demo</span>
                 </div>
                 <div class="section-container">
                     <RouterView v-slot="{ Component }">

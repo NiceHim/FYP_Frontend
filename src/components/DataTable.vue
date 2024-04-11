@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { reactive, ref, } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 
 const props = defineProps({
     items: {type: Array<any>, required: true},
     title: {type: String, required: true},
     hearders: {type: Array, required: true}
+})
+const dataTableContainer = ref<HTMLElement | null>();
+
+onMounted(()=>{
+    if (isOverflow(dataTableContainer.value!) == true) {
+        dataTableContainer.value!.style.minWidth = "100dvw";
+    }
 })
 
 const itemsPerPage = 10;
@@ -42,9 +49,13 @@ function navNext() {
     }
     sliceItems.value = props.items.slice(startIndex.value, endIndex.value + 1);
 }
+
+function isOverflow(element: HTMLElement) {
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
 </script>
 <template>
-    <div class="data-table-container">
+    <div class="data-table-container" ref="dataTableContainer">
         <div class="data-table-header">{{ props.title }}</div>
         <table>
             <tr>
