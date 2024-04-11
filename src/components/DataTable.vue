@@ -10,7 +10,7 @@ const dataTableContainer = ref<HTMLElement | null>();
 
 onMounted(()=>{
     if (isOverflow(dataTableContainer.value!) == true) {
-        dataTableContainer.value!.style.minWidth = "100dvw";
+        dataTableContainer.value!.style.width = "fit-content";
     }
 })
 
