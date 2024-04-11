@@ -197,7 +197,7 @@ async function handleStopSubscription() {
             if (result) {
                 addNotification("Success", result.message);
                 subscribeStore.reset();
-                
+                window.location.reload();
             }
         } catch (error) {
             console.log(error)
