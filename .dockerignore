@@ -30,3 +30,4 @@ coverage
 .dockerignore
 .gitignore
 Dockerfile
+.github
