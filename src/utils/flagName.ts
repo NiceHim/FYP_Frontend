@@ -1,4 +1,8 @@
 export default {
     "USD": "US",
-    "EUR": "EU"
+    "EUR": "EU",
+    "CAD": "CA",
+    "JPY": "JP",
+    "AUD": "AU",
+    "GBP": "GB",
 }

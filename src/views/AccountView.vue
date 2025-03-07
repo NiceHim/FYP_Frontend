@@ -4,7 +4,7 @@ import type IBalanceRecord from "@/models/balanceRecord";
 import {type ICurrentSubscription, type IHistorySubscription} from '@/models/subscription';
 import DataTable from '@/components/DataTable.vue';
 import { getBalanceRecord, getHistoryTransaction } from '@/api/user';
-import { getCurrentSubscription, getHistorySubscription, stopSubscription } from "@/api/subscription";
+import { getCurrentSubscription, getHistorySubscription, updateSubscription } from "@/api/subscription";
 import { useAuthStore } from '@/stores/auth';
 import { useSubscribeStore } from '@/stores/subscribe';
 import type ITransaction from '@/models/transaction';
@@ -21,8 +21,8 @@ await loadData();
 async function loadData() {
   try {
     [itemsBalanceRecord.value, itemsCurrentSubscription.value, 
-    itemsHistorySubscription.value, itemsHistoryTransaction.value] = await Promise.all([getBalanceRecord(authStore.token), getCurrentSubscription(authStore.token), 
-    getHistorySubscription(authStore.token), getHistoryTransaction(authStore.token)]);
+    itemsHistorySubscription.value, itemsHistoryTransaction.value] = await Promise.all([getBalanceRecord(), getCurrentSubscription(), 
+    getHistorySubscription(), getHistoryTransaction()]);
   } catch (error) {
     console.log(error);
   }

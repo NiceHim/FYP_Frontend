@@ -38,9 +38,9 @@ async function handleSubmit(event: any) {
   try {
     const valid = await v$.value.$validate();
     if (valid == true) {
-      const result = await withdraw(authStore.token, formData.withdrawAmount);
+      const result = await withdraw(formData.withdrawAmount);
       formData.withdrawAmount = 0;
-      const user = await getUserInfo(authStore.token);
+      const user = await getUserInfo();
       userStore.user = user;
       emits("addNotification", "Success", result.message);
     }

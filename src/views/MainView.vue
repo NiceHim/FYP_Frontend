@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { RouterLink, RouterView, useRouter } from 'vue-router';
+import { RouterView, useRouter } from 'vue-router';
 import { onMounted, onUnmounted, onBeforeMount, ref, reactive, computed, watch, provide } from 'vue';
 import { useNavStore } from '@/stores/nav';
 import { useAuthStore } from '@/stores/auth';
 import { useUserStore } from '@/stores/user';
 import { useMarketStore } from '@/stores/market';
 import { useSubscribeStore } from '@/stores/subscribe';
-import { currentTransactionKey } from "@/utils/injectionKey";
+import { useTradingDataWebSocketStore } from '@/stores/tradingDataWebSocket';
 import { getUserInfo } from "@/api/user";
-import { stopSubscription, subscribe } from "@/api/subscription";
+import { updateSubscription, subscribe } from "@/api/subscription";
 import { getCurrentTransaction } from "@/api/user";
+import { logout } from '@/api/auth';
 import { useVuelidate } from '@vuelidate/core';
 import { required, minValue, maxValue, integer, helpers } from '@vuelidate/validators';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
@@ -25,24 +26,16 @@ interface ISubscribeOrder {
     lot: number;
 }
 
-interface ILiveAccountData {
-    equity: number;
-    unrealizedPnL: number;
-    currentTransaction: Array<ITransaction>;
-}
-
-let websocket: WebSocket | null = null;
 const router = useRouter();
 const navStore = useNavStore();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const marketStore = useMarketStore();
 const subscribeStore = useSubscribeStore();
+const tradingDataWebSocketStore = useTradingDataWebSocketStore();
 navStore.currentPath = "/main/account";
 router.push("/main/account");
 
-const liveAccountData: ILiveAccountData = reactive({equity: 0, unrealizedPnL: 0, currentTransaction: []});
-const currentTransaction = ref<ITransaction[]>([]);
 const formData: ISubscribeOrder = reactive({lot: 1});
 const rules = computed(() => ({
   lot: {
@@ -61,27 +54,10 @@ const mainContentContainer = ref<HTMLElement | null>(null);
 const colorOfUserEquity = ref<string>("gray");
 const colorOfUserUnrealizedPnL = ref<string>("gray");
 
-provide(currentTransactionKey, currentTransaction);
-
 onBeforeMount(async () => {
-    if (authStore.token == "") {
-        router.push("/login");
-    }
     await loadData();
-    
     if (marketStore.marketStatus?.currencies.fx == "open") {
-        websocket = new WebSocket(import.meta.env.VITE_WEBSOCKET_BACKEND+"ws/user.trading.data", [authStore.token]);
-        if (websocket != null) {
-            websocket.addEventListener("message", (event)=>{
-                let parseData: ILiveAccountData  = JSON.parse(event.data);
-                liveAccountData.currentTransaction = parseData.currentTransaction;
-                currentTransaction.value = parseData.currentTransaction;
-                liveAccountData.equity = parseData.equity;
-                liveAccountData.unrealizedPnL = parseData.unrealizedPnL;
-                userStore.user!.equity = liveAccountData.equity;
-                userStore.user!.unrealizedPnL = liveAccountData.unrealizedPnL;
-            })
-        }
+        tradingDataWebSocketStore.connect();
     } 
 })
 
@@ -125,18 +101,7 @@ onUnmounted(() => {
             }
         }
     })
-    if (websocket != null) {
-        websocket.close();
-        websocket.removeEventListener("message", (event)=>{
-            let parseData: ILiveAccountData  = JSON.parse(event.data);
-            liveAccountData.currentTransaction = parseData.currentTransaction;
-            currentTransaction.value = parseData.currentTransaction;
-            liveAccountData.equity = parseData.equity;
-            liveAccountData.unrealizedPnL = parseData.unrealizedPnL;
-            userStore.user!.equity = liveAccountData.equity;
-            userStore.user!.unrealizedPnL = liveAccountData.unrealizedPnL;
-        });
-    }
+    tradingDataWebSocketStore.disconnect();
 })
 
 
@@ -178,7 +143,7 @@ async function handleSubscribeSubmit() {
     try {
         const isValid = await v$.value.$validate();
         if (isValid == true) {
-            const result = await subscribe(authStore.token, subscribeStore.ticker, formData.lot);
+            const result = await subscribe(subscribeStore.ticker, formData.lot);
             if (result) {
                 addNotification("Success", result.message);
                 subscribeStore.showSubscribeModal = false;
@@ -192,24 +157,30 @@ async function handleSubscribeSubmit() {
 
 async function handleStopSubscription() {
     try {
-        try {
-            const result = await stopSubscription(authStore.token, subscribeStore.ticker, subscribeStore.lot);
-            if (result) {
-                addNotification("Success", result.message);
-                subscribeStore.reset();
-                window.location.reload();
-            }
-        } catch (error) {
-            console.log(error)
+        const result = await updateSubscription(subscribeStore.ticker, { status: "ended" });
+        if (result) {
+            addNotification("Success", result.message);
+            subscribeStore.reset();
+            window.location.reload();
         }
     } catch (error) {
         addNotification("Error", (error as any).response.data.message);
     }
 }
 
+async function handleLogout() {
+    try {
+        const result = await logout();
+    } catch (error) {
+        addNotification("Error", (error as any).response.data.message);
+    } finally {
+        router.push("/login");
+    }
+}
+
 async function loadData() {
     try {
-        [userStore.user, currentTransaction.value] = await Promise.all([getUserInfo(authStore.token), getCurrentTransaction(authStore.token)]);
+        [userStore.user, tradingDataWebSocketStore.currentTransaction ] = await Promise.all([getUserInfo(), getCurrentTransaction()]);
     } catch (error) {
         addNotification("Error", (error as any).response.data.message);
     }
@@ -249,7 +220,7 @@ watch(()=>userStore.user?.unrealizedPnL, (newValue, oldValue)=>{
     <div class="main-view-container">
         <NotificationContainer :notifications="notifications" :style="{'position': 'relative', 'z-index': 100000000}"/>
         <Transition name="fade">
-            <NavBar v-if="showNavBar" :windowWidth="windowWidth"  @closeMenu="closeMenu" @navigate="navigate"/>
+            <NavBar v-if="showNavBar" :windowWidth="windowWidth"  @closeMenu="closeMenu" @navigate="navigate" @logout="handleLogout"/>
         </Transition>
         <div class="main-content-wrapper">
             <div class="dummy" v-if="showNavBar && windowWidth <= 1024" :class="{'colorFade': isColorFade}" @click="closeMenu"></div>

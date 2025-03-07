@@ -1,75 +1,61 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import { onBeforeMount, onUnmounted, ref, reactive } from "vue";
-import { getMarketStatus, getLastQuoteAndAggregate } from "@/api/market";
+import { onBeforeMount, onUnmounted, ref, reactive, onMounted } from "vue";
+import { getMarketStatus, getAllLastQuotes, getAllAggregates } from "@/api/market";
 import SnapShot from '@/components/SnapShot.vue';
 import { useMarketStore } from '@/stores/market';
+import { useForexWebSocketStore } from '@/stores/forexWebSocket';
 import type IAreaChartData from '@/models/areaChartData';
-import type { IDetailedQuote } from '@/models/quote';
+import type { IDetailedQuote, IReducedLastQuote } from '@/models/quote';
+import type { IReducedAggregate } from '@/models/aggregate';
 import dayjs from 'dayjs';
 
 let websocket: WebSocket | null = null;
 const marketStore = useMarketStore();
+const forexWebSocketStore = useForexWebSocketStore();
 const isShow = ref<boolean>(false);
-const ticker = "C:EURUSD";
-const realTimeData = reactive({
-  "EUR/USD": {
-    quote: {
-      a: 0,
-      b: 0,
-      t: 0
-    },
-    aggregate: ref<Array<IAreaChartData>>([])
-  }
-})
+const snapShotContainerWrap = ref<HTMLElement | null>(null);
+const lastQuotes = ref<Array<IReducedLastQuote>>([]);
+const aggregates = ref<Array<IReducedAggregate>>([]);
+
 
 await loadData();
 
 onBeforeMount(() => {
     if (marketStore.marketStatus?.currencies.fx == "open") {
-      websocket = new WebSocket(import.meta.env.VITE_WEBSOCKET_BACKEND+"ws/forex.quote.data");
-    }
-    if (websocket != null) {
-      websocket.addEventListener("message", (event)=>{
-          const data: IDetailedQuote = JSON.parse(event.data);
-          // @ts-ignore
-          realTimeData[data.p].quote.a = data.a;
-          // @ts-ignore
-          realTimeData[data.p].quote.b = data.b;
-          // @ts-ignore
-          realTimeData[data.p].quote.t = data.t;
-      })
+      forexWebSocketStore.connect();
     }
 })
 
-
-onUnmounted(() => {
-  if (websocket) {
-    websocket.close();
-    websocket.removeEventListener("message", (event)=>{
-        const data: IDetailedQuote = JSON.parse(event.data);
-        // @ts-ignore
-        realTimeData[data.p].quote.a = data.a;
-        // @ts-ignore
-        realTimeData[data.p].quote.b = data.b;
-        // @ts-ignore
-        realTimeData[data.p].quote.t = data.t;
-    })
+onMounted(() => {
+  window.addEventListener("resize", () => {
+    snapShotContainerWrap.value!.style.overflowX = isOverflow(snapShotContainerWrap.value!) ? "scroll" : "";
+  })
+  if (isOverflow(snapShotContainerWrap.value!) == true) {
+      snapShotContainerWrap.value!.style.overflowX = "scroll";
   }
 })
+
+onUnmounted(() => {
+  forexWebSocketStore.disconnect();
+  window.removeEventListener("resize", () => {
+    snapShotContainerWrap.value!.style.overflowX = isOverflow(snapShotContainerWrap.value!) ? "scroll" : "";
+  })
+})
+
+function isOverflow(element: HTMLElement) {
+  return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+}
 
 async function loadData() {
   try {
     marketStore.marketStatus = await getMarketStatus();
-    const result = await getLastQuoteAndAggregate(ticker, 1, "day", dayjs().subtract(5, "day").format("YYYY-MM-DD"), dayjs().format("YYYY-MM-DD"));
-    realTimeData['EUR/USD'].quote.a = result['EUR/USD'].quote.ask;
-    realTimeData['EUR/USD'].quote.b = result['EUR/USD'].quote.bid;
-    realTimeData['EUR/USD'].aggregate = result['EUR/USD'].aggregate.reduce((filtered: any[], data: any)=>{
-      if (dayjs(data.t).day() != 0 && dayjs(data.t).day() != 6) {
-          filtered.push({value: data.c, time: dayjs(data.t).format("YYYY-MM-DD")})
-      }
-      return filtered;
-    }, [])
+    [lastQuotes.value, aggregates.value] = await Promise.all(
+        [
+            getAllLastQuotes(),
+            getAllAggregates(1, "day", dayjs().subtract(5, "day").format("YYYY-MM-DD"), dayjs().format("YYYY-MM-DD"))
+        ]
+    );
   } catch (error) {
     console.log(error);
   }
@@ -100,7 +86,10 @@ setTimeout(()=>{
         </Transition>
       </div>
       <!-- <SnapShot :ticker="snapShotList[0]" /> -->
-      <SnapShot :ticker="ticker" :quote="realTimeData['EUR/USD'].quote" :aggregate="realTimeData['EUR/USD'].aggregate"/>
+       <div class="snapshot-container-wrap" ref="snapShotContainerWrap">
+
+         <SnapShot v-for="(lastQuote, index) in lastQuotes" :ticker="lastQuote.symbol" :quote="lastQuote.last" :aggregate="aggregates[index].results"/>
+       </div>
       <RouterLink to="/register">
         <button class="start-btn">
           <span>Get Started</span>
@@ -177,6 +166,15 @@ svg {
   white-space: nowrap;
 }
 
+.snapshot-container-wrap {
+  width: 100vw;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
 .start-btn {
   padding: 0.2rem 0.5rem 0.2rem 0.5rem;
   text-align: center;
@@ -211,24 +209,28 @@ svg {
 .fade-enter-active,
 .fade-leave-active {
   transform: translateY(0);
-  transition: all 1s ease;
+  opacity: 1;
+  transition: all 0.5s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  transform: translateY(200vh);
+  opacity: 0;
+  transform: translateY(10vh);
 }
 
 .fade2-enter-active,
 .fade2-leave-active {
   transform: translateY(0);
-  transition: all 1s ease;
+  opacity: 1;
+  transition: all 0.5s ease;
   transition-delay: 0.5s;
 }
 
 .fade2-enter-from,
 .fade2-leave-to {
-  transform: translateY(200vh);
+  opacity: 0;
+  transform: translateY(10vh);
 }
 
 </style>

@@ -2,85 +2,45 @@ import base from "@/api/base";
 import type IUser from "@/models/user";
 import type IBalanceRecord from "@/models/balanceRecord";
 
-export async function getUserInfo(token: string): Promise<IUser> {
-    const { data } = await base.post("/user/userInfo", {}, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+export async function getUserInfo(): Promise<IUser> {
+    const { data } = await base.get("/user/info");
     return data;
 }
 
-export async function getBalanceRecord(token: string): Promise<Array<IBalanceRecord>> {
-    const { data } = await base.post("/user/balanceRecord", {}, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+export async function getBalanceRecord(): Promise<Array<IBalanceRecord>> {
+    const { data } = await base.get("/user/balance-records");
     return data;
 }
 
-export async function deposit(token: string, depositAmt: number) {
+export async function deposit(depositAmt: number) {
     const params = {
         depositAmt: depositAmt
     };
-    const { data } = await base.post("/user/deposit", params, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+    const { data } = await base.post("/user/deposit", params);
     return data;
 }
 
-export async function withdraw(token: string, withdrawAmt: number) {
+export async function withdraw(withdrawAmt: number) {
     const params = {
         withdrawAmt: withdrawAmt
     };
-    const { data } = await base.post("/user/withdraw", params, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+    const { data } = await base.post("/user/withdraw", params);
     return data;
 }
 
-export async function getSubscription(token: string) {
-    const { data } = await base.post("/user/subscription", {}, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+// export async function getTransaction(done: boolean) {
+//     const queryParams = new URLSearchParams({done: done.toString()});
+//     const pathString = "/user/transactions/?" + queryParams.toString();
+//     const { data } = await base.get(pathString);
+//     return data;
+// }
+
+export async function getCurrentTransaction() {
+    const { data } = await base.get("/user/current-transactions");
     return data;
 }
 
-
-export async function subscribe(token: string, ticker: string, lot: number) {
-    const params = {
-        ticker: ticker,
-        lot: lot
-    };
-    const { data } = await base.post("/user/subscribe", params, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
-    return data;
-}
-
-export async function getCurrentTransaction(token: string) {
-    const { data } = await base.post("/user/currentTransaction", {}, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
-    return data;
-}
-
-export async function getHistoryTransaction(token: string) {
-    const { data } = await base.post("/user/historyTransaction", {}, {
-        headers: {
-            "Authorization" : `token ${token}`
-        }
-    });
+export async function getHistoryTransaction() {
+    const { data } = await base.get("/user/history-transactions");
     return data;
 }

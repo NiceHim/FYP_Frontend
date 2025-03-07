@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, inject, type PropType } from 'vue';
-import { currentTransactionKey } from "@/utils/injectionKey"
-import PositionsDataTable from '@/components/PositionsDataTable.vue';
 
-const currentTransaction = inject(currentTransactionKey);
+import PositionsDataTable from '@/components/PositionsDataTable.vue';
+import { useTradingDataWebSocketStore } from '@/stores/tradingDataWebSocket';
+
+const tradingDataWebSocketStore = useTradingDataWebSocketStore();
 
 </script>
 <template>
     <div class="positions-view-container">
-        <PositionsDataTable v-if="currentTransaction" :items="currentTransaction" :title="'Positions'" :hearders="['Ticker', 'Action', 'Lot', 'Initial Price', 'PnL', 'CreatedAt (UTC+0)']"/>
+        <PositionsDataTable :items="tradingDataWebSocketStore.currentTransaction" :title="'Positions'" :hearders="['Ticker', 'Action', 'Lot', 'Initial Price', 'PnL', 'CreatedAt (UTC+0)']"/>
     </div>
 </template>
 <style scoped>

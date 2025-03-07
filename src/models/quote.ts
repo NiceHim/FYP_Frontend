@@ -20,3 +20,15 @@ export interface ILastQuote {
     exchange: string;
     timestamp: number;
 }
+
+export interface IRequestLastQuote {
+    last: ILastQuote;
+    request_id: string;
+    status: string;
+    symbol: string;
+}
+
+export interface IReducedLastQuote {
+    last: ILastQuote;
+    symbol: string;
+}

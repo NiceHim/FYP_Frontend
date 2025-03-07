@@ -2,6 +2,7 @@ import axios from "axios";
 
 const base = axios.create({
     baseURL: import.meta.env.VITE_RESTFUL_BACKEND,
+    withCredentials: true,
     timeout: 5000,
 })
 

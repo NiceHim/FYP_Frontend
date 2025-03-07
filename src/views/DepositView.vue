@@ -38,10 +38,10 @@ async function handleSubmit(event: any) {
   try {
     const valid = await v$.value.$validate();
     if (valid == true) {
-      const result = await deposit(authStore.token, formData.depositAmount);
+      const result = await deposit(formData.depositAmount);
       console.log(result);
       formData.depositAmount = 0;
-      const user = await getUserInfo(authStore.token);
+      const user = await getUserInfo();
       userStore.user = user;
       emits("addNotification", "Success", result.message);
     }

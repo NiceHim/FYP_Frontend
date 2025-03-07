@@ -4,14 +4,13 @@ import { useAuthStore } from '@/stores/auth';
 import { useNavStore } from '@/stores/nav';
 import { useUserStore } from '@/stores/user';
 
-
 const navStore = useNavStore();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 const props = defineProps({
     windowWidth: {type: Number, required: true},
 })
-const emits = defineEmits(["closeMenu", "navigate"]);
+const emits = defineEmits(["closeMenu", "navigate", "logout"]);
 
 function onMenuCloseIconClick() {
     emits("closeMenu");
@@ -20,6 +19,10 @@ function onMenuCloseIconClick() {
 function onNavListClick(path: string) {
     navStore.currentPath = path;
     emits("navigate", path);
+}
+
+function handleLogout() {
+    emits("logout");
 }
 </script>
 
@@ -87,7 +90,7 @@ function onNavListClick(path: string) {
                         <h1>Positions</h1>
                     </li>
                 </RouterLink>
-                <li @click="authStore.logout()">
+                <li @click="handleLogout">
                     <div class="list-icon-container">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
                             <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/>

@@ -3,7 +3,7 @@ import { ref, reactive, computed } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { register } from '@/api/auth';
 import { useVuelidate } from '@vuelidate/core';
-import { minLength, required, sameAs, helpers } from '@vuelidate/validators'
+import { minLength, required, sameAs, helpers, maxLength } from '@vuelidate/validators'
 import { containsUppercase, containsLowercase, containsNumber } from '@/utils/formValidate';
 import NotificationContainer from '@/components/NotificationContainer.vue';
 import InputField from '@/components/InputField.vue';
@@ -30,6 +30,7 @@ const rules = computed(() => ({
   password: {
     required: helpers.withMessage("This field is required", required),
     minLength: helpers.withMessage("Min Length of 8", minLength(8)),
+    maxLength: helpers.withMessage("Max Length of 20", maxLength(20)),
     containsUppercase,
     containsLowercase,
     containsNumber

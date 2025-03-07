@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch, inject, type PropType } from 'vue';
 import { createChart, type IChartApi } from 'lightweight-charts';
-import { areaChartDataKey } from "@/utils/injectionKey";
-import { useMarketStore } from '@/stores/market';
-import type { IQuote } from '@/models/quote';
+import { type ILastQuote } from '@/models/quote';
+import type IAreaChartData from '@/models/areaChartData';
 import dayjs from 'dayjs';
 
 const props = defineProps({
     tickerName: {type: String, required: true},
     width: {type: String, required: true},
     height: {type: String, required: true},
-    newQuote: {type: Object as PropType<IQuote>, required: true},
+    newQuote: {type: Object as PropType<ILastQuote>, required: true},
+    aggregate: {type: Array<IAreaChartData>, required: true},
     priceStatus: {type: String, required: true}
 })
-const marketStore = useMarketStore();
 let chartOptions = { 
     layout: {
         background: {color: '#FFFFFF'}
@@ -32,10 +31,6 @@ let chartOptions = {
 let areaOptionsIncreasing = { lineColor: '#32CD32', topColor: '#00FF00', bottomColor: 'rgba(0, 255, 0, 0.28)', priceLineVisible: false };
 let areaOptionsDecreasing = { lineColor: '#DC143C', topColor: '#FF0000', bottomColor: 'rgba(255, 0, 0, 0.28)', priceLineVisible: false };
 let areaOptionsMarketOff = { lineColor: '#808080', topColor: '#D3D3D3', bottomColor: 'rgba(211, 211, 211, 0.28)', priceLineVisible: false };
-
-
-const data = inject(areaChartDataKey);
-
 let chart: IChartApi | null;
 let areaSeries: any;
 const chartContainer = ref();
@@ -56,8 +51,7 @@ onMounted(() => {
     } else {
         areaSeries = chart.addAreaSeries(areaOptionsDecreasing);
     }
-    // @ts-ignore
-    areaSeries.setData(data[props.tickerName].aggregate);
+    areaSeries.setData(props.aggregate);
     chart.timeScale().fitContent();
     window.addEventListener('resize', resizeHandler);
 });
@@ -71,16 +65,16 @@ onUnmounted(() => {
 });
 
 watch(()=>props.newQuote, (newValue)=>{
-    areaSeries.update({time: dayjs(newValue.t).format("YYYY-MM-DD"), value: newValue.b})
+    areaSeries.update({time: dayjs(newValue.timestamp).format("YYYY-MM-DD"), value: newValue.bid})
 }, {deep: true})
 
-watch(
-    ()=> data,
-    (newData) => {
-        if (!areaSeries) return;
-        areaSeries.setData(newData);
-    }
-)
+// watch(
+//     ()=> data,
+//     (newData) => {
+//         if (!areaSeries) return;
+//         areaSeries.setData(newData);
+//     }
+// )
 
 watch(()=>props.priceStatus, (newValue)=>{
     if (chart) {

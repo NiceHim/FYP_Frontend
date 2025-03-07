@@ -17,3 +17,8 @@ export async function login(userName: string, password: string) {
     const { data } = await base.post("/auth/login", params);
     return data;
 }
+
+export async function logout() {
+    const { data } = await base.post("/auth/logout");
+    return data;
+}

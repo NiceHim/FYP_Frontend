@@ -4,6 +4,7 @@ export default interface ITransaction {
     lot: number;
     action: string;
     PnL: number;
+    done: boolean;
     createdAt: Date;
     endedAt: Date;
 }

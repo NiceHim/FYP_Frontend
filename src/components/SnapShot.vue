@@ -2,31 +2,33 @@
 import { ref, type PropType, watch } from "vue";
 import flagName from "@/utils/flagName"
 import { useMarketStore } from "@/stores/market";
-import type { IQuote } from "@/models/quote";
+import type { ILastQuote, IQuote } from "@/models/quote";
 import type IAreaChartData from "@/models/areaChartData";
+import { useForexWebSocketStore } from "@/stores/forexWebSocket";
 
 const props = defineProps({
     ticker: {type: String, required: true},
-    quote: {type: Object as PropType<IQuote>, required: true},
+    quote: {type: Object as PropType<ILastQuote>, required: true},
     aggregate: {type: Array<IAreaChartData>, required: true}
 })
 
 const marketStore = useMarketStore();
+const forexWebSocketStore = useForexWebSocketStore();
 const ticker = props.ticker.replace("C:", "");
 const currency1 = ticker.slice(0, 3);
-const currency2 = ticker.slice(3, 6);
+const currency2 = ticker.slice(4, 7);
 // @ts-ignore
 const flagName1 = flagName[currency1];
 // @ts-ignore
 const flagName2 = flagName[currency2];
 // const snapShotData = ref<Snapshot>()
-const percChange = ref<number>(parseFloat((((props.quote.b - props.aggregate[props.aggregate.length-2].value) /  props.aggregate[props.aggregate.length-2].value) * 100).toFixed(3)) );
-const tempSellPrice = ref<number>(props.quote.b);
+const percChange = ref<number>(parseFloat((((props.quote.bid - props.aggregate[props.aggregate.length-2].value) /  props.aggregate[props.aggregate.length-2].value) * 100).toFixed(3)) );
+const tempSellPrice = ref<number>(props.quote.bid);
 const colorOfSellPrice = ref<string>("gray");
 const colorOfTodaysPercChange = ref<string>(marketStore.marketStatus?.currencies.fx == "open" ? percChange.value >= 0 ? "green" : "red" : "gray");
 
-watch(()=>props.quote.b, (newValue)=>{
-    updateDOM(newValue);
+watch(()=>forexWebSocketStore.state.forexMap.get(ticker), (newValue: IQuote) => {
+    updateDOM(newValue.b);
 })
 
 async function updateDOM(newValue: number) {
@@ -58,7 +60,7 @@ async function updateDOM(newValue: number) {
             <div :class="{'market-status-indicator-on': marketStore.marketStatus?.currencies.fx=='open', 'market-status-indicator-off': marketStore.marketStatus?.currencies.fx=='closed'}"></div>
         </div>
         <div class="data-content-container">
-            <span :style="{color: colorOfSellPrice}">{{ props.quote.b }}</span>
+            <span :style="{color: colorOfSellPrice}">{{ tempSellPrice }}</span>
             <span :style="{color: colorOfTodaysPercChange}">{{ (percChange >= 0 ? '+' : '') + percChange.toFixed(3) + '%' }}</span>
         </div>
     </div>
@@ -71,7 +73,7 @@ async function updateDOM(newValue: number) {
     padding: 0.5rem;
     width: 10rem;
     height: 4rem;
-    background-color: white;
+    background-color: #f2f2f2;
     border-radius: 0.5rem;
     box-shadow: 0rem 0rem 0.5rem gray;
 }   

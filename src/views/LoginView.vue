@@ -39,7 +39,6 @@ async function handleSubmit(event: any) {
     if (valid) {
       const result = await login(formData.userName, formData.password);
       if (result.message == "Successfully login") {
-        authStore.token = result.token;
         router.push("/main");
       }
     }
